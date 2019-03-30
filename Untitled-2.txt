@@ -1,0 +1,73 @@
+<?php
+
+class sprit{
+
+    public $tab_images = [];
+    public $tab_mini_images = [];
+
+    /**
+     * @param string $repo_path chemain vere le dossier qui contien les image a spriter
+     * ouvre le dossier push les fichiers dans l'atribut $tab_images
+     */
+    public function open_repo($repo_path){
+        $repo = opendir($repo_path);
+        while (false !== ($file = readdir($repo))){
+            if($file !== '.' && $file !== '..'){
+                array_push($this->tab_images ,$file);
+            }
+        }
+        $this->redimension_images($repo_path);
+    }
+
+    private function redimension_images($repo_path){
+        $i = 1;
+        foreach ($this->tab_images as $value) {
+            if ($value != 'sprit.png') {
+                $source = imagecreatefromjpeg("./images/$value");
+                $destination = imagecreatetruecolor(50, 50);
+
+                $lrg_source = imagesx($source);
+                $hut_source = imagesy($source);
+
+                $lrg_destination = imagesx($destination);
+                $hut_destination = imagesy($destination);
+
+                imagecopyresampled($destination, $source, 0, 0, 0, 0, $lrg_destination, $hut_destination, $lrg_source, $hut_source);
+
+                imagepng($destination, "./spitimage/mini$i.png");
+                array_push($this->tab_mini_images, "mini$i.png");
+                $i++;
+            }
+            
+        }
+    }
+    /**
+     * cree une image parraport au nombre d'images present dans le dossier
+     */
+    public function create_image(){
+        header ("Content-type: image/png");
+        $image = imagecreate(count($this->tab_images) * 100,30);
+        $orange = imagecolorallocate($image, 255, 128, 0);
+        imagepng($image, "spitimage/sprit.png");
+    }
+
+    public function fusion(){
+        $this->create_image();
+        $destination = imagecreatefrompng('./spitimage/sprit.png');
+        foreach ($this->tab_mini_images as $value) {
+            if ($value != 'sprit.png') {
+                $source = imagecreatefromjpeg("./spitimage/$value");
+
+                $lrg_source = imagesx($source);
+                $hut_source = imagesy($source);
+                
+            }
+        }
+    }
+ 
+}
+
+$sp = new sprit();
+$sp->open_repo('./images');
+$sp->fusion();
+//$sp->open_repo('./images');
